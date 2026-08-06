@@ -40,6 +40,10 @@ export async function initFacePipeline(): Promise<void> {
   if (!recognitionSession) {
     // ORT's wasm ships with the app bundle (dist/assets/ort-wasm-simd-threaded.jsep.*.wasm),
     // so we keep the default wasmPaths (same-origin) instead of a CDN override.
+    // Run single-threaded: this avoids ORT spawning a Worker from the app bundle
+    // URL (which crashes when the whole SPA runs inside it) and works on any HTTPS
+    // site. The page is cross-origin isolated (COOP/COEP) so the wasm instantiates.
+    ort.env.wasm.numThreads = 1;
     recognitionSession = await ort.InferenceSession.create(RECOGNITION_MODEL_URL, {
       executionProviders: ['wasm'],
     });

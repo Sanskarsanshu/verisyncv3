@@ -6,19 +6,32 @@ import { Prisma } from '@prisma/client';
 export const QR_REFRESH_SECONDS = 30;
 
 function appBaseUrl(): string {
-  const url = process.env.PUBLIC_APP_URL?.trim();
-  if (!url) {
-    console.error(
-      '[Dynamic QR] PUBLIC_APP_URL is not configured. ' +
-        'Set PUBLIC_APP_URL in backend/.env (e.g. https://abc123.trycloudflare.com) ' +
-        'to generate attendance QR codes.'
-    );
-    throw new Error(
-      'PUBLIC_APP_URL is not configured. Set PUBLIC_APP_URL in backend/.env ' +
-        'to your public URL (Cloudflare Tunnel, ngrok, or domain) to generate QR codes.'
-    );
+  // Resolve the public URL used to build QR links. Prefer an explicit
+  // PUBLIC_APP_URL, but ignore unresolved `${...}` placeholders (Render does not
+  // interpolate env var values) and fall back to Render's own hostname so QR
+  // codes work without manual configuration.
+  const configured = process.env.PUBLIC_APP_URL?.trim() ?? '';
+  const isPlaceholder = /\$\{[A-Z0-9_]+\}/.test(configured);
+  const explicit = isPlaceholder ? '' : configured;
+
+  if (explicit) {
+    return explicit.replace(/\/+$/, '');
   }
-  return url.replace(/\/+$/, '');
+
+  const renderHost = process.env.RENDER_EXTERNAL_HOSTNAME?.trim();
+  if (renderHost) {
+    return `https://${renderHost.replace(/^https?:\/\//, '')}`;
+  }
+
+  console.error(
+    '[Dynamic QR] PUBLIC_APP_URL is not configured. ' +
+      'Set PUBLIC_APP_URL in backend/.env (e.g. https://abc123.trycloudflare.com) ' +
+      'to generate attendance QR codes.'
+  );
+  throw new Error(
+    'PUBLIC_APP_URL is not configured. Set PUBLIC_APP_URL in backend/.env ' +
+      'to your public URL (Cloudflare Tunnel, ngrok, or domain) to generate QR codes.'
+  );
 }
 
 export function attendanceUrl(sessionCode: string, token: string): string {
