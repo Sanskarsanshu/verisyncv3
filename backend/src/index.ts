@@ -22,7 +22,21 @@ const PORT = parseInt(process.env.PORT ?? '3001', 10);
 // Trust the first proxy hop (needed for correct client IPs behind a reverse proxy).
 app.set('trust proxy', 1);
 
-app.use(helmet());
+app.use(
+  helmet({
+    // The default CSP blocks WebAssembly instantiation and worker/blob loads
+    // used by ONNX Runtime and MediaPipe. We serve all wasm/models from our own
+    // origin, so we keep helmet's other headers but skip its CSP.
+    contentSecurityPolicy: false,
+  })
+);
+// Cross-origin isolation: makes SharedArrayBuffer available so ONNX Runtime's
+// multithreaded wasm can run on deployed HTTPS (localhost already has this).
+app.use((_req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  next();
+});
 const corsOrigins = (process.env.CORS_ORIGIN ?? '')
   .split(',')
   .map((o) => o.trim())

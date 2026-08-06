@@ -5,12 +5,11 @@ import {
 } from '@mediapipe/tasks-vision';
 import * as ort from 'onnxruntime-web';
 
-const WASM_PATH =
-  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm';
-const FACE_DETECTOR_MODEL =
-  'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite';
-const FACE_LANDMARKER_MODEL =
-  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+// All assets are self-hosted on the same origin so the face pipeline works
+// on any deployed HTTPS site without CDN access or cross-origin isolation.
+const WASM_PATH = '/wasm/mediapipe/';
+const FACE_DETECTOR_MODEL = '/models/blaze_face_short_range.tflite';
+const FACE_LANDMARKER_MODEL = '/models/face_landmarker.task';
 
 const RECOGNITION_MODEL_URL = '/models/w600k_r50.onnx';
 
@@ -39,8 +38,8 @@ export async function initFacePipeline(): Promise<void> {
   }
 
   if (!recognitionSession) {
-    ort.env.wasm.wasmPaths =
-      'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/';
+    // ORT's wasm ships with the app bundle (dist/assets/ort-wasm-simd-threaded.jsep.*.wasm),
+    // so we keep the default wasmPaths (same-origin) instead of a CDN override.
     recognitionSession = await ort.InferenceSession.create(RECOGNITION_MODEL_URL, {
       executionProviders: ['wasm'],
     });

@@ -75,7 +75,8 @@ export default function FaceEnrollmentPage() {
     try {
       await initFacePipeline();
       await startCamera();
-    } catch {
+    } catch (err) {
+      console.error('[facePipeline] init failed:', err);
       toast.error('Failed to initialize face recognition');
     } finally {
       setLoading(false);

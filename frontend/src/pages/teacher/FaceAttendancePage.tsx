@@ -31,7 +31,8 @@ export default function FaceAttendancePage() {
         const sessionRes = await api.post('/attendance/session', { type: 'FACE' });
         setSessionId(sessionRes.data.sessionId);
         await startCamera();
-      } catch {
+      } catch (err) {
+        console.error('[facePipeline] init failed:', err);
         toast.error('Failed to start face attendance session');
       } finally {
         setLoading(false);
