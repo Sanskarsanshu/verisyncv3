@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: face-attendance-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: face_attendance
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: face-attendance-api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/face_attendance?schema=public
+      JWT_SECRET: change-this-to-a-long-random-secret-in-production
+      JWT_EXPIRES_IN: 7d
+      REGISTRATION_TOKEN_EXPIRES_IN: 30m
+      FACE_SIMILARITY_THRESHOLD: 0.45
+      # Public URL used in attendance QR codes (Cloudflare Tunnel / ngrok / real domain).
+      PUBLIC_APP_URL: https://attendance.mycollege.edu
+      PORT: 3001
+      CORS_ORIGIN: http://localhost:5173
+      TEACHER_EMAIL: teacher@school.edu
+      TEACHER_PASSWORD: Teacher@123
+      TEACHER_NAME: Default Teacher
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: face-attendance-web
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

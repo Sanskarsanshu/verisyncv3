@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --color-glass: rgba(15, 23, 42, 0.75);
+  --color-glass-border: rgba(148, 163, 184, 0.15);
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+  color: #f1f5f9;
+}
+
+.glass {
+  background: var(--color-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 1rem;
+}
+
+.glass-card {
+  background: var(--color-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 1px solid rgb(71 85 105);
+  color: rgb(226 232 240);
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: rgb(30 41 59);
+}
+
+.btn-danger {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: 1px solid rgb(248 113 113 / 0.4);
+  color: rgb(248 113 113);
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: rgb(127 29 29 / 0.3);
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgb(51 65 85);
+  color: rgb(241 245 249);
+}
+
+.input-field::placeholder {
+  color: rgb(100 116 139);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 1px rgb(99 102 241);
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { box-shadow: 0 0 20px 5px rgba(99, 102, 241, 0.2); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}

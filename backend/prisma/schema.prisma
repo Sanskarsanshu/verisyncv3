@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AttendanceMethod {
+  FACE
+  QR
+}
+
+enum SessionType {
+  FACE
+  QR
+}
+
+enum SessionStatus {
+  ACTIVE
+  ENDED
+  EXPIRED
+}
+
+model Student {
+  id           String   @id @default(uuid())
+  fullName     String
+  rollNumber   String   @unique
+  email        String   @unique
+  passwordHash String
+  semester     String?
+  section      String?
+  faceVerified Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  faceEmbeddings FaceEmbedding[]
+  attendances    Attendance[]
+  qrToken        QrToken?
+
+  @@map("students")
+}
+
+model FaceEmbedding {
+  id        String   @id @default(uuid())
+  studentId String
+  embedding Float[]
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("face_embeddings")
+}
+
+model Teacher {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  sessions Session[]
+
+  @@map("teachers")
+}
+
+model Subject {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("subjects")
+}
+
+model Session {
+  id          String        @id @default(uuid())
+  teacherId   String?
+  type        SessionType
+  date        DateTime      @default(now()) @db.Date
+  isActive    Boolean       @default(true)
+
+  // Dynamic QR attendance fields
+  sessionCode String?       @unique
+  subjectName String?
+  subjectCode String?
+  semester    String?
+  section     String?
+  classroom   String?
+  startTime   DateTime?
+  expiryTime  DateTime?
+  status      SessionStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+
+  teacher       Teacher?       @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  attendances   Attendance[]
+  sessionTokens SessionToken[]
+
+  @@index([date, type])
+  @@map("sessions")
+}
+
+model SessionToken {
+  id         String    @id @default(uuid())
+  sessionId  String
+  token      String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("session_tokens")
+}
+
+model Attendance {
+  id         String           @id @default(uuid())
+  studentId  String
+  sessionId  String
+  method     AttendanceMethod
+  markedAt   DateTime         @default(now())
+  confidence Float?
+
+  // Dynamic QR metadata (server-captured)
+  sessionCode String?
+  subject     String?
+  ipAddress   String?
+  userAgent   String?
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sessionId])
+  @@index([studentId])
+  @@index([sessionId])
+  @@map("attendance")
+}
+
+model QrToken {
+  id        String   @id @default(uuid())
+  studentId String   @unique
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("qr_tokens")
+}
+
+model PendingRegistration {
+  id           String   @id @default(uuid())
+  fullName     String
+  rollNumber   String   @unique
+  email        String   @unique
+  passwordHash String
+  semester     String?
+  section      String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  @@map("pending_registrations")
+}
